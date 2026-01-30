@@ -1,0 +1,23 @@
+{
+  "name": "opencode-qodo",
+  "version": "0.1.0",
+  "description": "OpenCode plugin for Qodo CLI integration",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "^0.1.0",
+    "typescript": "^5.3.3",
+    "@types/node": "^20.11.0"
+  },
+  "files": [
+    "dist"
+  ]
+}
