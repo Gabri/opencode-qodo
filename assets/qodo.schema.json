@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OpenCode Qodo Plugin Configuration",
+  "description": "Configuration schema for the OpenCode Qodo plugin",
+  "type": "object",
+  "properties": {
+    "apiKey": {
+      "type": "string",
+      "description": "Qodo API key (optional, usually managed via qodo key create)"
+    },
+    "defaultModel": {
+      "type": "string",
+      "description": "Default model to use for Qodo operations",
+      "enum": [
+        "claude-4.5-sonnet",
+        "claude-4.5-haiku",
+        "claude-4.5-opus",
+        "gemini-2.5-pro",
+        "grok-4",
+        "gpt-5.1-codex",
+        "gpt-5.1",
+        "gpt-5.2"
+      ],
+      "default": "claude-4.5-sonnet"
+    },
+    "defaultAgent": {
+      "type": "string",
+      "description": "Default agent to use when none specified"
+    },
+    "theme": {
+      "type": "string",
+      "description": "UI theme preference",
+      "enum": ["light", "dark"],
+      "default": "dark"
+    },
+    "autoUpdate": {
+      "type": "boolean",
+      "description": "Automatically update Qodo CLI",
+      "default": true
+    },
+    "debug": {
+      "type": "boolean",
+      "description": "Enable debug logging",
+      "default": false
+    },
+    "permissions": {
+      "type": "string",
+      "description": "Permission level for Qodo CLI",
+      "enum": ["r", "rw", "rwx", "-"],
+      "default": "rw"
+    },
+    "tools": {
+      "type": "array",
+      "description": "List of authorized tools",
+      "items": {
+        "type": "string"
+      }
+    },
+    "noBuiltin": {
+      "type": "boolean",
+      "description": "Disable built-in MCP servers",
+      "default": false
+    },
+    "plan": {
+      "type": "boolean",
+      "description": "Use planning execution strategy",
+      "default": false
+    },
+    "act": {
+      "type": "boolean",
+      "description": "Use direct execution strategy",
+      "default": true
+    }
+  },
+  "additionalProperties": false
+}

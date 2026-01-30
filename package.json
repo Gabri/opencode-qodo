@@ -1,23 +1,38 @@
 {
   "name": "opencode-qodo",
   "version": "0.1.0",
-  "description": "OpenCode plugin for Qodo CLI integration",
+  "description": "OpenCode plugin for Qodo CLI integration - use Qodo's agentic capabilities and models directly from OpenCode",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
+  "keywords": [
+    "opencode",
+    "plugin",
+    "qodo",
+    "ai",
+    "code-generation",
+    "testing",
+    "code-review"
+  ],
+  "author": "",
+  "license": "MIT",
   "scripts": {
     "build": "tsc",
+    "dev": "tsc --watch",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@opencode-ai/plugin": "^0.1.0",
-    "typescript": "^5.3.3",
-    "@types/node": "^20.11.0"
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
   },
   "files": [
-    "dist"
-  ]
+    "dist",
+    "assets"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }
