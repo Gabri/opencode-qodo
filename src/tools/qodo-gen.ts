@@ -1,28 +1,38 @@
-import { z } from "zod";
+import { tool } from "@opencode-ai/plugin/tool";
 import type { QodoCli } from "../utils/cli.js";
 import { createLogger } from "../utils/logger.js";
 
 const log = createLogger("qodo-gen");
 
-export function createQodoGenTool(cli: QodoCli) {
-  return {
+export function createQodoGenTool(cli: QodoCli): ReturnType<typeof tool> {
+  return tool({
     description: "Generate code, tests, documentation, or any other content using Qodo's AI. Supports various generation tasks like creating functions, classes, tests, or documentation.",
     args: {
-      prompt: z.string().describe("The generation prompt or instruction (e.g., 'Generate unit tests for this function', 'Create a React component for...')"),
-      model: z.string().optional().describe("Specific model to use (e.g., 'claude-4.5-sonnet', 'gpt-5.1-codex')"),
-      file: z.string().optional().describe("Path to a file to use as context for generation"),
-      outputFile: z.string().optional().describe("Path where the generated content should be saved"),
-      language: z.string().optional().describe("Target programming language (e.g., 'typescript', 'python', 'rust')"),
-      framework: z.string().optional().describe("Framework or library context (e.g., 'react', 'django', 'fastapi')"),
+      prompt: tool.schema
+        .string()
+        .describe("The generation prompt or instruction (e.g., 'Generate unit tests for this function', 'Create a React component for...')"),
+      model: tool.schema
+        .string()
+        .optional()
+        .describe("Specific model to use (e.g., 'claude-4.5-sonnet', 'gpt-5.1-codex')"),
+      file: tool.schema
+        .string()
+        .optional()
+        .describe("Path to a file to use as context for generation"),
+      outputFile: tool.schema
+        .string()
+        .optional()
+        .describe("Path where the generated content should be saved"),
+      language: tool.schema
+        .string()
+        .optional()
+        .describe("Target programming language (e.g., 'typescript', 'python', 'rust')"),
+      framework: tool.schema
+        .string()
+        .optional()
+        .describe("Framework or library context (e.g., 'react', 'django', 'fastapi')"),
     },
-    execute: async ({ prompt, model, file, outputFile, language, framework }: { 
-      prompt: string; 
-      model?: string; 
-      file?: string; 
-      outputFile?: string; 
-      language?: string; 
-      framework?: string;
-    }) => {
+    execute: async ({ prompt, model, file, outputFile, language, framework }: { prompt: string; model?: string; file?: string; outputFile?: string; language?: string; framework?: string }) => {
       try {
         log.info("Qodo generation started", { model, hasFile: !!file, language, framework });
 
@@ -56,5 +66,5 @@ export function createQodoGenTool(cli: QodoCli) {
         return `Error generating with Qodo: ${error.message}`;
       }
     },
-  };
+  });
 }

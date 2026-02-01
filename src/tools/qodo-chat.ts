@@ -1,16 +1,25 @@
-import { z } from "zod";
+import { tool } from "@opencode-ai/plugin/tool";
 import type { QodoCli } from "../utils/cli.js";
 import { createLogger } from "../utils/logger.js";
 
 const log = createLogger("qodo-chat");
 
-export function createQodoChatTool(cli: QodoCli) {
-  return {
+export function createQodoChatTool(cli: QodoCli): ReturnType<typeof tool> {
+  return tool({
     description: "Start an interactive chat session with Qodo AI. Useful for ongoing conversations, brainstorming, or iterative development.",
     args: {
-      initialMessage: z.string().optional().describe("Optional initial message to start the chat"),
-      model: z.string().optional().describe("Specific model to use for the chat session"),
-      context: z.string().optional().describe("Additional context or background information"),
+      initialMessage: tool.schema
+        .string()
+        .optional()
+        .describe("Optional initial message to start the chat"),
+      model: tool.schema
+        .string()
+        .optional()
+        .describe("Specific model to use for the chat session"),
+      context: tool.schema
+        .string()
+        .optional()
+        .describe("Additional context or background information"),
     },
     execute: async ({ initialMessage, model, context }: { initialMessage?: string; model?: string; context?: string }) => {
       try {
@@ -35,5 +44,5 @@ export function createQodoChatTool(cli: QodoCli) {
         return `Error starting Qodo chat: ${error.message}`;
       }
     },
-  };
+  });
 }

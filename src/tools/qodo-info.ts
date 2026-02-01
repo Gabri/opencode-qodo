@@ -1,15 +1,18 @@
-import { z } from "zod";
+import { tool } from "@opencode-ai/plugin/tool";
 import { QODO_MODELS } from "../models.js";
 import { createLogger } from "../utils/logger.js";
 import { isAuthenticated, listApiKeys } from "../auth.js";
 
 const log = createLogger("qodo-info");
 
-export function createQodoModelsTool() {
-  return {
+export function createQodoModelsTool(): ReturnType<typeof tool> {
+  return tool({
     description: "List all available Qodo models with their capabilities, context windows, and supported features.",
     args: {
-      provider: z.string().optional().describe("Filter by provider (e.g., 'anthropic', 'openai', 'google')"),
+      provider: tool.schema
+        .string()
+        .optional()
+        .describe("Filter by provider (e.g., 'anthropic', 'openai', 'google')"),
     },
     execute: async ({ provider }: { provider?: string }) => {
       try {
@@ -41,11 +44,11 @@ export function createQodoModelsTool() {
         return `Error listing models: ${error.message}`;
       }
     },
-  };
+  });
 }
 
-export function createQodoStatusTool() {
-  return {
+export function createQodoStatusTool(): ReturnType<typeof tool> {
+  return tool({
     description: "Check Qodo CLI status, version, authentication state, and available API keys.",
     args: {},
     execute: async () => {
@@ -68,16 +71,24 @@ export function createQodoStatusTool() {
         return `Error checking status: ${error.message}`;
       }
     },
-  };
+  });
 }
 
-export function createQodoConfigTool() {
-  return {
+export function createQodoConfigTool(): ReturnType<typeof tool> {
+  return tool({
     description: "View or update Qodo plugin configuration settings.",
     args: {
-      action: z.enum(["view", "set"]).describe("Action to perform: view current config or set a value"),
-      key: z.string().optional().describe("Configuration key to set (required for 'set' action)"),
-      value: z.string().optional().describe("Value to set (required for 'set' action)"),
+      action: tool.schema
+        .enum(["view", "set"])
+        .describe("Action to perform: view current config or set a value"),
+      key: tool.schema
+        .string()
+        .optional()
+        .describe("Configuration key to set (required for 'set' action)"),
+      value: tool.schema
+        .string()
+        .optional()
+        .describe("Value to set (required for 'set' action)"),
     },
     execute: async ({ action, key, value }: { action: "view" | "set"; key?: string; value?: string }) => {
       try {
@@ -110,5 +121,5 @@ export function createQodoConfigTool() {
         return `Error managing config: ${error.message}`;
       }
     },
-  };
+  });
 }

@@ -1,16 +1,25 @@
-import { z } from "zod";
+import { tool } from "@opencode-ai/plugin/tool";
 import type { QodoCli } from "../utils/cli.js";
 import { createLogger } from "../utils/logger.js";
 
 const log = createLogger("qodo-review");
 
-export function createQodoReviewTool(cli: QodoCli) {
-  return {
+export function createQodoReviewTool(cli: QodoCli): ReturnType<typeof tool> {
+  return tool({
     description: "Perform AI-powered code review on git changes. Analyzes staged and unstaged changes, groups them into logical change groups, and provides detailed feedback and suggestions.",
     args: {
-      scope: z.enum(["staged", "unstaged", "all"]).default("all").describe("Which changes to review: staged (only staged), unstaged (only unstaged), or all (both)"),
-      focus: z.string().optional().describe("Specific focus areas (e.g., 'security', 'performance', 'readability')"),
-      model: z.string().optional().describe("Specific model to use for the review"),
+      scope: tool.schema
+        .enum(["staged", "unstaged", "all"])
+        .default("all")
+        .describe("Which changes to review: staged (only staged), unstaged (only unstaged), or all (both)"),
+      focus: tool.schema
+        .string()
+        .optional()
+        .describe("Specific focus areas (e.g., 'security', 'performance', 'readability')"),
+      model: tool.schema
+        .string()
+        .optional()
+        .describe("Specific model to use for the review"),
     },
     execute: async ({ scope, focus, model }: { scope: "staged" | "unstaged" | "all"; focus?: string; model?: string }) => {
       try {
@@ -46,5 +55,5 @@ export function createQodoReviewTool(cli: QodoCli) {
         return `Error performing code review: ${error.message}`;
       }
     },
-  };
+  });
 }

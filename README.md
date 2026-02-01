@@ -2,6 +2,24 @@
 
 A comprehensive OpenCode plugin for [Qodo CLI](https://www.qodo.ai/) integration. Use Qodo's agentic capabilities, models, and specialized agents directly from OpenCode.
 
+## Quick Start
+
+Once installed, use Qodo directly from OpenCode:
+
+```bash
+# Generate code
+opencode "Use qodo to create a React login form with validation"
+
+# Run code review
+opencode "Run qodo_review on staged changes"
+
+# Execute specialized agent
+opencode "Use qodo_agent with agent qodo-cover to generate tests for src/utils.ts"
+
+# Chain multiple agents
+opencode "Use qodo_chain with agents [analyze, refactor, test] and initial prompt 'Review this codebase'"
+```
+
 ## Features
 
 - **Model Selection**: Access all Qodo models (Claude 4.5, GPT 5.1/5.2, Gemini 2.5 Pro, Grok 4) directly from OpenCode's model picker
@@ -22,15 +40,21 @@ A comprehensive OpenCode plugin for [Qodo CLI](https://www.qodo.ai/) integration
 
 ## Installation
 
-### Method 1: Local Development
+### Method 1: Local Development (Recommended)
 
-1. Clone or download this repository
-2. Install dependencies and build:
+1. **Clone** the repository in your project:
+   ```bash
+   git clone <repository-url> opencode-qodo
+   cd opencode-qodo
+   ```
+
+2. **Install dependencies** and build:
    ```bash
    npm install
    npm run build
    ```
-3. Add to your OpenCode configuration:
+
+3. **Add to your OpenCode configuration**:
 
    **Global** (`~/.config/opencode/opencode.json`):
    ```json
@@ -46,12 +70,27 @@ A comprehensive OpenCode plugin for [Qodo CLI](https://www.qodo.ai/) integration
    }
    ```
 
+   **Alternatively**, copy the built plugin to `.opencode/plugins/`:
+   ```bash
+   mkdir -p .opencode/plugins
+   cp -r opencode-qodo/dist .opencode/plugins/qodo
+   cp opencode-qodo/package.json .opencode/plugins/qodo/
+   ```
+
 ### Method 2: NPM (when published)
 
 ```json
 {
   "plugin": ["opencode-qodo"]
 }
+```
+
+### Verification
+
+After installation, verify the plugin is loaded:
+```bash
+opencode --version
+# Should show Qodo plugin loaded in logs
 ```
 
 ## Configuration
@@ -233,6 +272,18 @@ qodo login
 qodo key list  # Verify authentication
 ```
 
+### Plugin not loading / Zod version error
+If you see errors about Zod version conflicts:
+```bash
+# Remove old dependencies and reinstall
+cd opencode-qodo
+rm -rf node_modules package-lock.json
+npm install
+npm run build
+```
+
+The plugin uses the Zod version bundled with `@opencode-ai/plugin` to ensure compatibility.
+
 ### Enable debug mode
 ```bash
 # In OpenCode
@@ -242,6 +293,13 @@ Use qodo_config to set debug to true
 Or set environment variable:
 ```bash
 DEBUG=1 opencode
+```
+
+### Check plugin is loaded
+```bash
+# Start OpenCode and check logs
+opencode
+# Look for "Registering Qodo plugin" in the output
 ```
 
 ## License
