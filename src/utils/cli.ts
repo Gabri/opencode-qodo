@@ -196,7 +196,9 @@ export class QodoCli {
   }
 
   async selfReview(options: QodoCliOptions = {}): Promise<string> {
-    const args = ["self-review", ...this.buildArgs(options)];
+    // Always use --ci flag to run in autonomous mode without web interface
+    // This prevents the browser from opening and ensures the process completes
+    const args = ["self-review", "--ci", ...this.buildArgs(options)];
 
     return new Promise((resolve, reject) => {
       const child = spawn("qodo", args, {
