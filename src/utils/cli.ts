@@ -281,4 +281,79 @@ export class QodoCli {
       return false;
     }
   }
+
+  async getModels(): Promise<string[]> {
+    try {
+      const output = execSync("qodo models", { encoding: "utf-8", stdio: "pipe" });
+      // Parse the models output - typically one model per line
+      const models = output
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0 && !line.startsWith("#"));
+      return models;
+    } catch {
+      return [];
+    }
+  }
+
+  async getStatus(): Promise<{
+    installed: boolean;
+    version: string;
+    authenticated: boolean;
+    availableModels: string[];
+  }> {
+    const installed = this.isInstalled();
+    const version = installed ? this.getVersion() : "not installed";
+    
+    let authenticated = false;
+    try {
+      execSync("qodo key list", { encoding: "utf-8", stdio: "pipe" });
+      authenticated = true;
+    } catch {
+      authenticated = false;
+    }
+
+    const availableModels = installed ? await this.getModels() : [];
+
+    return {
+      installed,
+      version,
+      authenticated,
+      availableModels,
+    };
+  }
+
+  async executePrompt(prompt: string, options: QodoCliOptions = {}): Promise<string> {
+    // Use the main qodo command with a prompt directly
+    const args = [...this.buildArgs(options)];
+    
+    return new Promise((resolve, reject) => {
+      const child = spawn("qodo", [...args, prompt], {
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+
+      let stdout = "";
+      let stderr = "";
+
+      child.stdout?.on("data", (data) => {
+        stdout += data.toString();
+      });
+
+      child.stderr?.on("data", (data) => {
+        stderr += data.toString();
+      });
+
+      child.on("close", (code) => {
+        if (code === 0) {
+          resolve(stdout.trim());
+        } else {
+          reject(new Error(`Qodo CLI exited with code ${code}: ${stderr || stdout}`));
+        }
+      });
+
+      child.on("error", (error) => {
+        reject(new Error(`Failed to execute Qodo CLI: ${error.message}`));
+      });
+    });
+  }
 }

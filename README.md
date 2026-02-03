@@ -2,6 +2,14 @@
 
 A comprehensive OpenCode plugin for [Qodo CLI](https://www.qodo.ai/) integration. Use Qodo's agentic capabilities, models, and specialized agents directly from OpenCode.
 
+## Features Overview
+
+- 🤖 **Qodo Agent**: Dedicated OpenCode agent that routes all requests through Qodo
+- ⚡ **Slash Commands**: `/qodo`, `/qodo-status`, `/qodo-review`, `/qodo-test`, `/qodo-chat`, `/qodo-models`
+- 🔧 **Tools**: Full suite of Qodo tools accessible to any OpenCode agent
+- 📊 **Status Tracking**: Check authentication, models, and configuration
+- 🔄 **Agent Chaining**: Execute complex multi-agent workflows
+
 ## Quick Start
 
 Once installed, use Qodo directly from OpenCode:
@@ -20,8 +28,98 @@ opencode "Use qodo_agent with agent qodo-cover to generate tests for src/utils.t
 opencode "Use qodo_chain with agents [analyze, refactor, test] and initial prompt 'Review this codebase'"
 ```
 
+## Command Prefix Mode (New!)
+
+Use the `/qodo` or `qodo:` prefix in any OpenCode message to route it directly through Qodo:
+
+```bash
+# Using /qodo prefix
+opencode "/qodo Create a Python function to calculate fibonacci"
+
+# Using qodo: prefix
+opencode "qodo: Generate unit tests for src/utils.ts"
+
+# Works with any prompt
+opencode "/qodo Review this code and suggest improvements"
+```
+
+This is the quickest way to use Qodo - just prefix your message and it will be processed by Qodo automatically!
+
+## Autocomplete & Agent Selection
+
+The Qodo plugin now provides full autocomplete support in OpenCode:
+
+### Slash Commands (Type `/`)
+When you type `/` in OpenCode, you'll now see Qodo commands in the autocomplete list:
+
+- **`/qodo`** - Execute Qodo command for code generation, review, and more
+- **`/qodo:chat`** - Start an interactive chat session with Qodo
+- **`/qodo:review`** - Run Qodo code review on git changes
+- **`/qodo:agent`** - Execute a specialized Qodo agent
+- **`/qodo:models`** - List all available Qodo models
+- **`/qodo:status`** - Check Qodo CLI status and authentication
+
+### Agent Selection (Type `@` or use Tab)
+Switch to Qodo as your active agent by typing `@` and selecting:
+
+- **`@qodo`** - Switch to Qodo Agent for AI-powered code assistance
+- **`@qodo:cover`** - Use the Qodo Cover Agent for test generation
+- **`@qodo:review`** - Use the Qodo Review Agent for code analysis
+
+Simply type `@` and press **Tab** to cycle through available agents, or type `@qodo` to select Qodo directly!
+
+## Qodo Agent Mode
+
+The plugin includes a dedicated **Qodo Agent** that you can switch to for a full Qodo-powered experience.
+
+### Switching to Qodo Agent
+
+1. **Using Tab**: Press `Tab` to cycle through agents until you reach "qodo"
+2. **Using @mention**: Type `@qodo` in your message
+3. **Using slash command**: Type `/agents` and select "qodo"
+
+### What Qodo Agent Does
+
+When using the Qodo Agent, all your requests are processed through Qodo CLI:
+
+- **Code Generation**: Automatically uses `qodo` tool
+- **Code Review**: Routes to `qodo_review`
+- **Test Generation**: Uses `qodo_agent` with qodo-cover
+- **Complex Tasks**: Orchestrates multiple Qodo tools
+
+### Available Slash Commands
+
+| Command | Description |
+|---------|-------------|
+| `/qodo <prompt>` | Execute any prompt through Qodo |
+| `/qodo-status` | Check Qodo status, auth, and current model |
+| `/qodo-review [scope]` | Run code review (staged/unstaged/all) |
+| `/qodo-test <file>` | Generate tests for a file |
+| `/qodo-chat [message]` | Start interactive chat |
+| `/qodo-models [provider]` | List available models |
+
+### Example Workflow
+
+```bash
+# 1. Check your Qodo status
+/qodo-status
+
+# 2. Switch to Qodo agent
+@qodo
+
+# 3. Generate code
+Create a REST API endpoint for user management
+
+# 4. Review the changes
+/qodo-review staged
+
+# 5. Generate tests
+/qodo-test src/api/users.ts
+```
+
 ## Features
 
+- **Command Prefix Mode**: Use `/qodo` or `qodo:` prefix to route any message through Qodo directly
 - **Model Selection**: Access all Qodo models (Claude 4.5, GPT 5.1/5.2, Gemini 2.5 Pro, Grok 4) directly from OpenCode's model picker
 - **Code Generation**: Generate code, tests, and documentation with `qodo` tool
 - **Interactive Chat**: Start chat sessions with `qodo_chat`

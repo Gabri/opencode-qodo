@@ -13,21 +13,15 @@ export class Logger {
   }
 
   private log(level: LogLevel, message: string, extra?: Record<string, unknown>): void {
-    const timestamp = new Date().toISOString();
-    const logEntry = {
-      timestamp,
-      service: this.service,
-      level,
-      message,
-      ...(extra && { extra }),
-    };
-
+    // Only log to stderr to avoid polluting OpenCode's UI
+    // OpenCode captures stdout and shows it in the chat interface
     if (level === "error") {
-      console.error(JSON.stringify(logEntry));
+      console.error(`[${this.service}] ${level.toUpperCase()}: ${message}`, extra || "");
     } else if (level === "warn") {
-      console.warn(JSON.stringify(logEntry));
-    } else if (this.debugEnabled || level === "info") {
-      console.log(JSON.stringify(logEntry));
+      console.error(`[${this.service}] ${level.toUpperCase()}: ${message}`, extra || "");
+    } else if (this.debugEnabled) {
+      // Only show debug/info logs when debug is explicitly enabled
+      console.error(`[${this.service}] ${level.toUpperCase()}: ${message}`, extra || "");
     }
   }
 
@@ -38,7 +32,10 @@ export class Logger {
   }
 
   info(message: string, extra?: Record<string, unknown>): void {
-    this.log("info", message, extra);
+    // Info logs only shown when debug is enabled
+    if (this.debugEnabled) {
+      this.log("info", message, extra);
+    }
   }
 
   warn(message: string, extra?: Record<string, unknown>): void {

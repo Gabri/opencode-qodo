@@ -14,6 +14,10 @@ export interface QodoConfig {
   noBuiltin?: boolean;
   plan?: boolean;
   act?: boolean;
+  /** Enable Qodo as the primary agent for all requests */
+  enableQodoAgent?: boolean;
+  /** Show status bar with Qodo info (model, auth status) */
+  showStatusBar?: boolean;
 }
 
 const CONFIG_DIR = join(homedir(), ".config", "opencode");
