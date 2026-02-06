@@ -1,5 +1,8 @@
 import { execSync, spawn } from "node:child_process";
 import type { QodoConfig } from "../config.js";
+import { createLogger } from "./logger.js";
+
+const log = createLogger("qodo-cli");
 
 export interface QodoCliOptions {
   model?: string;
@@ -19,9 +22,11 @@ export interface QodoCliOptions {
 
 export class QodoCli {
   private config: QodoConfig;
+  private cwd: string;
 
-  constructor(config: QodoConfig) {
+  constructor(config: QodoConfig, cwd: string) {
     this.config = config;
+    this.cwd = cwd;
   }
 
   private buildArgs(options: QodoCliOptions): string[] {
@@ -91,11 +96,16 @@ export class QodoCli {
   }
 
   async execute(prompt: string, options: QodoCliOptions = {}): Promise<string> {
+    log.info("QodoCli.execute() called", { prompt: prompt.substring(0, 50), cwd: this.cwd });
+    
     return new Promise((resolve, reject) => {
       const args = [...this.buildArgs(options), prompt];
       
+      log.info("Spawning qodo process", { args, cwd: this.cwd });
+      
       const child = spawn("qodo", args, {
         stdio: ["pipe", "pipe", "pipe"],
+        cwd: this.cwd,
       });
 
       let stdout = "";
@@ -110,20 +120,24 @@ export class QodoCli {
       });
 
       child.on("close", (code) => {
+        log.info(`Qodo process exited with code ${code}`, { code, stderr: stderr.substring(0, 200) });
         if (code === 0) {
           resolve(stdout.trim());
         } else {
+          log.error("Qodo CLI process failed", { code, stderr: stderr.substring(0, 500) });
           reject(new Error(`Qodo CLI exited with code ${code}: ${stderr || stdout}`));
         }
       });
 
       child.on("error", (error) => {
+        log.error("Failed to spawn Qodo CLI", { error: error.message, cwd: this.cwd });
         reject(new Error(`Failed to execute Qodo CLI: ${error.message}`));
       });
     });
   }
 
   async runCommand(command: string, extraInstructions?: string, options: QodoCliOptions = {}): Promise<string> {
+    log.info("QodoCli.runCommand() called", { command, cwd: this.cwd });
     const args = ["run", command];
     
     if (extraInstructions) {
@@ -135,6 +149,7 @@ export class QodoCli {
     return new Promise((resolve, reject) => {
       const child = spawn("qodo", args, {
         stdio: ["pipe", "pipe", "pipe"],
+        cwd: this.cwd,
       });
 
       let stdout = "";
@@ -168,6 +183,7 @@ export class QodoCli {
     return new Promise((resolve, reject) => {
       const child = spawn("qodo", args, {
         stdio: ["pipe", "pipe", "pipe"],
+        cwd: this.cwd,
       });
 
       let stdout = "";
@@ -203,6 +219,7 @@ export class QodoCli {
     return new Promise((resolve, reject) => {
       const child = spawn("qodo", args, {
         stdio: ["pipe", "pipe", "pipe"],
+        cwd: this.cwd,
       });
 
       let stdout = "";
@@ -238,6 +255,7 @@ export class QodoCli {
       const child = spawn("qodo", args, {
         stdio: ["pipe", "pipe", "pipe"],
         shell: true,
+        cwd: this.cwd,
       });
 
       let stdout = "";
@@ -267,7 +285,7 @@ export class QodoCli {
 
   getVersion(): string {
     try {
-      return execSync("qodo --version", { encoding: "utf-8" }).trim();
+      return execSync("qodo --version", { encoding: "utf-8", cwd: this.cwd }).trim();
     } catch {
       return "unknown";
     }
@@ -275,7 +293,7 @@ export class QodoCli {
 
   isInstalled(): boolean {
     try {
-      execSync("qodo --version", { encoding: "utf-8", stdio: "pipe" });
+      execSync("qodo --version", { encoding: "utf-8", stdio: "pipe", cwd: this.cwd });
       return true;
     } catch {
       return false;
@@ -284,7 +302,7 @@ export class QodoCli {
 
   async getModels(): Promise<string[]> {
     try {
-      const output = execSync("qodo models", { encoding: "utf-8", stdio: "pipe" });
+      const output = execSync("qodo models", { encoding: "utf-8", stdio: "pipe", cwd: this.cwd });
       // Parse the models output - typically one model per line
       const models = output
         .split("\n")
@@ -307,7 +325,7 @@ export class QodoCli {
     
     let authenticated = false;
     try {
-      execSync("qodo key list", { encoding: "utf-8", stdio: "pipe" });
+      execSync("qodo key list", { encoding: "utf-8", stdio: "pipe", cwd: this.cwd });
       authenticated = true;
     } catch {
       authenticated = false;
@@ -328,8 +346,9 @@ export class QodoCli {
     const args = [...this.buildArgs(options)];
     
     return new Promise((resolve, reject) => {
-      const child = spawn("qodo", [...args, prompt], {
+      const child = spawn("qodo", args, {
         stdio: ["pipe", "pipe", "pipe"],
+        cwd: this.cwd,
       });
 
       let stdout = "";

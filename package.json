@@ -17,7 +17,8 @@
   "author": "",
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run bundle",
+    "bundle": "esbuild dist/index.js --bundle --platform=node --format=esm --outfile=dist/bundle.js --external:child_process --external:fs --external:path --external:os --external:url",
     "dev": "tsc --watch",
     "prepublishOnly": "npm run build"
   },
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
+    "esbuild": "^0.27.2",
     "typescript": "^5.3.3"
   },
   "files": [

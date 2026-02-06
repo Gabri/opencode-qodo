@@ -8,6 +8,8 @@ import { createQodoReviewTool } from "./tools/qodo-review.js";
 import { createQodoAgentsTool, createQodoChainTool } from "./tools/qodo-agents.js";
 import { createQodoModelsTool, createQodoStatusTool, createQodoConfigTool } from "./tools/qodo-info.js";
 import { QODO_MODELS } from "./models.js";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
 const log = createLogger("qodo-plugin");
 
@@ -43,6 +45,7 @@ export interface PluginHooks {
   tool?: Record<string, any>;
   "session.created"?: (session: { id: string }) => Promise<void>;
   "session.error"?: (error: { message: string }) => Promise<void>;
+  "agent.execute"?: (input: { agent: string; prompt: string; sessionID: string }, output: { parts: Array<{ type: string; text: string }> }) => Promise<void>;
   "tool.execute.before"?: (input: { tool: string }, output: any) => Promise<void>;
   "tool.execute.after"?: (input: { tool: string }, output: any) => Promise<void>;
   "command.execute.before"?: (input: { command: string; sessionID: string; arguments: string }, output: { parts: Array<{ type: string; text: string }> }) => Promise<void>;
@@ -70,7 +73,16 @@ async function initializeQodoLazy(): Promise<{ cli: QodoCli; config: ReturnType<
     log.info("Lazy initializing Qodo CLI");
     
     const config = loadConfig();
-    const cli = new QodoCli(config);
+    
+    // Determine plugin directory to force Qodo CLI to run from there if needed, 
+    // or we can use process.cwd() if that's what we want.
+    // However, the issue described suggests we want the CLI to run 
+    // relative to where the plugin is, or perhaps where the PROJECT is.
+    // Given the previous error context, let's use the file location of the plugin.
+    const __filename = fileURLToPath(import.meta.url);
+    const pluginDir = dirname(__filename);
+
+    const cli = new QodoCli(config, pluginDir);
     
     cliInstance = cli;
     configInstance = config;
@@ -79,6 +91,7 @@ async function initializeQodoLazy(): Promise<{ cli: QodoCli; config: ReturnType<
       version: cli.getVersion(),
       authenticated: isAuthenticated(),
       defaultModel: config.defaultModel,
+      pluginDir
     });
     
     return { cli, config };
@@ -88,67 +101,66 @@ async function initializeQodoLazy(): Promise<{ cli: QodoCli; config: ReturnType<
 }
 
 export const QodoPlugin: Plugin = async (context: PluginContext) => {
-  const { client } = context;
+  const { client, worktree, directory } = context;
   
-  log.info("Registering Qodo plugin (lazy loading enabled)");
-
-  // Start lazy initialization in background without blocking
-  initializeQodoLazy().catch((error) => {
-    log.error("Background Qodo initialization failed", { error: error.message });
+  // Get plugin directory
+  const __filename = fileURLToPath(import.meta.url);
+  const pluginDir = dirname(__filename);
+  
+  log.info("=== QodoPlugin INIT ===", {
+    worktree,
+    directory,
+    pluginDir,
+    cwd: process.cwd()
   });
+  
+  const config = loadConfig();
+  const cli = new QodoCli(config, pluginDir);
 
-  // Create tools with lazy CLI access
-  const createLazyTool = <T extends (...args: any[]) => any>(
-    toolFactory: (cli: QodoCli) => ReturnType<T>
-  ) => {
-    const tool = toolFactory({} as QodoCli);
-    const originalExecute = tool.execute;
-    
-    return {
-      ...tool,
-      execute: async (...args: any[]) => {
-        const { cli } = await initializeQodoLazy();
-        
-        // Check if CLI is installed on first use
-        if (!cli.isInstalled()) {
-          log.error("Qodo CLI is not installed or not in PATH");
-          await client.app.toast({
-            message: "Qodo CLI not found. Please install it: npm install -g qodo",
-            type: "error",
-          });
-          return "Error: Qodo CLI not installed";
-        }
+  log.info("Registering Qodo plugin", { pluginDir, worktree });
 
-        // Check authentication on first use
-        if (!isAuthenticated()) {
-          log.warn("Qodo CLI is not authenticated");
-          await client.app.toast({
-            message: "Qodo not authenticated. Run 'qodo login' to authenticate.",
-            type: "warning",
-          });
-        }
-        
-        // Re-create the tool with the actual CLI instance and execute
-        const actualTool = toolFactory(cli);
-        return actualTool.execute(...args);
-      },
-    };
+  // Check if CLI is installed
+  if (!cli.isInstalled()) {
+    log.error("Qodo CLI is not installed or not in PATH");
+    await client.app.toast({
+      message: "Qodo CLI not found. Please install it: npm install -g qodo",
+      type: "error",
+    });
+  }
+
+  // Check authentication
+  if (!isAuthenticated()) {
+    log.warn("Qodo CLI is not authenticated");
+    await client.app.toast({
+      message: "Qodo not authenticated. Run 'qodo login' to authenticate.",
+      type: "warning",
+    });
+  }
+
+  // Crea i tool con logging
+  const tools = {
+    qodo: createQodoGenTool(cli),
+    qodo_chat: createQodoChatTool(cli),
+    qodo_review: createQodoReviewTool(cli),
+    qodo_agent: createQodoAgentsTool(cli),
+    qodo_chain: createQodoChainTool(cli),
+    qodo_models: createQodoModelsTool(),
+    qodo_status: createQodoStatusTool(),
+    qodo_config: createQodoConfigTool(),
   };
 
+  log.info("Tools creati", { toolNames: Object.keys(tools) });
+
   return {
-    tool: {
-      qodo: createLazyTool(createQodoGenTool),
-      qodo_chat: createLazyTool(createQodoChatTool),
-      qodo_review: createLazyTool(createQodoReviewTool),
-      qodo_agent: createLazyTool(createQodoAgentsTool),
-      qodo_chain: createLazyTool(createQodoChainTool),
-      qodo_models: createQodoModelsTool(),
-      qodo_status: createQodoStatusTool(),
-      qodo_config: createQodoConfigTool(),
-    },
+    tool: tools,
 
     "session.created": async (session: { id: string }) => {
       log.info("Session created", { sessionId: session.id });
+      // Notify user about Qodo plugin activation and current model
+      await client.app.toast({
+        message: `Qodo Plugin Active (Model: ${config.defaultModel})`,
+        type: "info",
+      });
     },
 
     "session.error": async (error: { message: string }) => {
@@ -158,6 +170,38 @@ export const QodoPlugin: Plugin = async (context: PluginContext) => {
         await client.app.toast({
           message: "Qodo rate limit hit. Retrying with backoff...",
           type: "warning",
+        });
+      }
+    },
+
+    "agent.execute": async (input: { agent: string; prompt: string; sessionID: string }, output: { parts: Array<{ type: string; text: string }> }) => {
+      // Check if this is the Qodo agent
+      if (input.agent !== "qodo" && input.agent !== "@qodo") {
+        return; // Let other agents handle it
+      }
+      
+      log.info("Executing Qodo agent", { 
+        sessionID: input.sessionID,
+        prompt: input.prompt
+      });
+      
+      try {
+        // Execute prompt through Qodo CLI directly
+        const result = await cli.execute(input.prompt);
+        
+        log.info("Qodo agent execution completed");
+        
+        // Return result with model info - this bypasses OpenCode's LLM completely
+        output.parts.push({
+          type: "text",
+          text: `**[Qodo Agent: ${config.defaultModel}]**\n\n${result}`
+        });
+        
+      } catch (error: any) {
+        log.error("Qodo agent execution failed", { error: error.message });
+        output.parts.push({
+          type: "text",
+          text: `❌ Error executing Qodo agent: ${error.message}`
         });
       }
     },
@@ -177,31 +221,6 @@ export const QodoPlugin: Plugin = async (context: PluginContext) => {
       });
       
       try {
-        const { cli } = await initializeQodoLazy();
-        
-        // Check if CLI is installed
-        if (!cli.isInstalled()) {
-          log.error("Qodo CLI is not installed or not in PATH");
-          await client.app.toast({
-            message: "Qodo CLI not found. Please install it: npm install -g qodo",
-            type: "error",
-          });
-          output.parts.push({
-            type: "text",
-            text: "❌ Error: Qodo CLI not installed. Run: npm install -g qodo"
-          });
-          return;
-        }
-        
-        // Check authentication
-        if (!isAuthenticated()) {
-          log.warn("Qodo CLI is not authenticated");
-          await client.app.toast({
-            message: "Qodo not authenticated. Run 'qodo login' to authenticate.",
-            type: "warning",
-          });
-        }
-        
         // Extract the actual prompt (remove the prefix)
         const prompt = input.arguments.startsWith("qodo:") 
           ? input.arguments.replace(/^qodo:\s*/, "")
@@ -220,10 +239,10 @@ export const QodoPlugin: Plugin = async (context: PluginContext) => {
         
         log.info("Qodo command executed successfully");
         
-        // Return result
+        // Return result with model info
         output.parts.push({
           type: "text",
-          text: result
+          text: `**[Qodo: ${config.defaultModel}]**\n\n${result}`
         });
         
       } catch (error: any) {
@@ -244,7 +263,6 @@ export const QodoPlugin: Plugin = async (context: PluginContext) => {
     },
 
     "experimental.session.compacting": async (input: any, output: { context: string[] }) => {
-      const config = configInstance || loadConfig();
       output.context.push(`## Qodo Plugin Context
 This session is using the Qodo plugin for OpenCode.
 Available models: Claude 4.5, GPT 5.1/5.2, Gemini 2.5 Pro, Grok 4
@@ -253,9 +271,11 @@ Authentication: ${isAuthenticated() ? "active" : "not authenticated"}`);
     },
 
     "autocomplete.provide": async (input: { trigger: string; query: string }, output: { provider?: AutocompleteProvider; items: AutocompleteItem[] }) => {
+      log.info("AUTOCOMPLETE PROVIDE CALLED", { trigger: input.trigger, query: input.query });
+      
       // Handle slash commands (trigger is "/")
       if (input.trigger === "/") {
-        log.debug("Providing slash command autocomplete", { trigger: input.trigger, query: input.query });
+        log.info("Providing slash command autocomplete", { trigger: input.trigger, query: input.query });
 
         const qodoCommands: AutocompleteItem[] = [
           {
@@ -299,13 +319,13 @@ Authentication: ${isAuthenticated() ? "active" : "not authenticated"}`);
 
         output.items.push(...filteredCommands);
         output.provider = { trigger: "/", fuzzy: true };
-        log.debug("Slash command autocomplete provided", { count: filteredCommands.length });
+        log.info("Slash command autocomplete provided", { count: filteredCommands.length, items: filteredCommands.map(c => c.label) });
         return;
       }
 
       // Handle agent selection (trigger is "@" or agent selection context)
       if (input.trigger === "@" || input.trigger === "agent") {
-        log.debug("Providing agent autocomplete", { trigger: input.trigger, query: input.query });
+        log.info("Providing agent autocomplete", { trigger: input.trigger, query: input.query });
 
         const qodoAgents: AutocompleteItem[] = [
           {
@@ -334,7 +354,7 @@ Authentication: ${isAuthenticated() ? "active" : "not authenticated"}`);
 
         output.items.push(...filteredAgents);
         output.provider = { trigger: input.trigger, fuzzy: true };
-        log.debug("Agent autocomplete provided", { count: filteredAgents.length });
+        log.info("Agent autocomplete provided", { count: filteredAgents.length, items: filteredAgents.map(a => a.label) });
       }
     },
   };

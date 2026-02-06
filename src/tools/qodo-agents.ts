@@ -31,6 +31,8 @@ export function createQodoAgentsTool(cli: QodoCli): ReturnType<typeof tool> {
       try {
         log.info("Executing Qodo agent", { agent, model, hasAgentFile: !!agentFile });
 
+        const modelInfo = model ? ` (Model: ${model})` : "";
+
         const result = await cli.runCommand(agent, prompt, {
           model,
           agentFile,
@@ -38,7 +40,8 @@ export function createQodoAgentsTool(cli: QodoCli): ReturnType<typeof tool> {
         });
 
         log.info("Qodo agent execution completed", { agent });
-        return result;
+        
+        return `**[Qodo Agent: ${agent}${modelInfo}]**\n\n${result}`;
       } catch (error: any) {
         log.error("Qodo agent execution failed", { agent, error: error.message });
         return `Error executing Qodo agent '${agent}': ${error.message}`;
@@ -70,13 +73,16 @@ export function createQodoChainTool(cli: QodoCli): ReturnType<typeof tool> {
           return "Error: Chain requires at least 2 agents";
         }
 
+        const modelInfo = model ? ` (Model: ${model})` : "";
+
         const result = await cli.chain(agents, {
           model,
           set: { prompt: initialPrompt },
         });
 
         log.info("Qodo agent chain completed");
-        return result;
+        
+        return `**[Qodo Chain: ${agents.join(" > ")}${modelInfo}]**\n\n${result}`;
       } catch (error: any) {
         log.error("Qodo agent chain failed", { error: error.message });
         return `Error executing agent chain: ${error.message}`;

@@ -10,6 +10,26 @@ A comprehensive OpenCode plugin for [Qodo CLI](https://www.qodo.ai/) integration
 - 📊 **Status Tracking**: Check authentication, models, and configuration
 - 🔄 **Agent Chaining**: Execute complex multi-agent workflows
 
+## ⚡ Quick Install
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/dinova-one/opencode-qodo.git ~/opencode-qodo
+cd ~/opencode-qodo && npm install && npm run build
+
+# 2. Add to OpenCode config
+echo '{"plugin":["'$(realpath dist/bundle.js)'"]}' > ~/.config/opencode/opencode.json
+
+# 3. Create symlinks for autocomplete
+ln -sf $(realpath .opencode/agents) ~/.config/opencode/agents
+ln -sf $(realpath .opencode/commands) ~/.config/opencode/commands
+
+# 4. Done! OpenCode will now show Qodo commands and agent
+opencode
+```
+
+See [Installation](#installation) for detailed instructions and troubleshooting.
+
 ## Quick Start
 
 Once installed, use Qodo directly from OpenCode:
@@ -138,11 +158,21 @@ Create a REST API endpoint for user management
 
 ## Installation
 
-### Method 1: Local Development (Recommended)
+### Prerequisites
 
-1. **Clone** the repository in your project:
+- **Qodo CLI**: Must be installed and authenticated
+  ```bash
+  npm install -g qodo
+  qodo login
+  ```
+
+### Method 1: Clone and Link (Recommended for Development)
+
+This method allows the plugin to work from any directory and provides full autocomplete support.
+
+1. **Clone** the repository:
    ```bash
-   git clone <repository-url> opencode-qodo
+   git clone https://github.com/dinova-one/opencode-qodo.git
    cd opencode-qodo
    ```
 
@@ -152,30 +182,57 @@ Create a REST API endpoint for user management
    npm run build
    ```
 
-3. **Add to your OpenCode configuration**:
-
-   **Global** (`~/.config/opencode/opencode.json`):
+3. **Add the plugin to OpenCode configuration** (`~/.config/opencode/opencode.json`):
    ```json
    {
-     "plugin": ["/absolute/path/to/opencode-qodo/dist/index.js"]
+     "plugin": [
+       "/home/gabri/ws/git/dinova-one/github/opecode-qodo/dist/bundle.js"
+     ]
    }
    ```
+   Replace the path with the absolute path to your cloned repository.
 
-   **Project-level** (`.opencode/opencode.json`):
-   ```json
-   {
-     "plugin": ["./opencode-qodo/dist/index.js"]
-   }
-   ```
-
-   **Alternatively**, copy the built plugin to `.opencode/plugins/`:
+4. **Create symlinks for autocomplete support** (important!):
    ```bash
-   mkdir -p .opencode/plugins
-   cp -r opencode-qodo/dist .opencode/plugins/qodo
-   cp opencode-qodo/package.json .opencode/plugins/qodo/
+   # Create symlinks so OpenCode can find agents and commands
+   ln -sf /home/gabri/ws/git/dinova-one/github/opecode-qodo/.opencode/agents ~/.config/opencode/agents
+   ln -sf /home/gabri/ws/git/dinova-one/github/opecode-qodo/.opencode/commands ~/.config/opencode/commands
+   ```
+   Again, replace the source path with your actual repository path.
+
+5. **Verify installation**:
+   ```bash
+   opencode
+   # Type / to see Qodo commands in autocomplete
+   # Type @ to see Qodo agent
    ```
 
-### Method 2: NPM (when published)
+### Method 2: Project-Local Installation
+
+If you prefer to install the plugin only in a specific project:
+
+1. **Clone** inside your project:
+   ```bash
+   cd your-project
+   git clone https://github.com/dinova-one/opencode-qodo.git
+   cd opencode-qodo && npm install && npm run build && cd ..
+   ```
+
+2. **Add to project's OpenCode config** (`.opencode/opencode.json`):
+   ```json
+   {
+     "plugin": ["./opencode-qodo/dist/bundle.js"]
+   }
+   ```
+
+3. **Create local symlinks**:
+   ```bash
+   mkdir -p .opencode
+   ln -sf ./opencode-qodo/.opencode/agents .opencode/agents
+   ln -sf ./opencode-qodo/.opencode/commands .opencode/commands
+   ```
+
+### Method 3: NPM (when published)
 
 ```json
 {
@@ -381,6 +438,48 @@ npm run build
 ```
 
 The plugin uses the Zod version bundled with `@opencode-ai/plugin` to ensure compatibility.
+
+### Autocomplete not working (commands/agents not showing)
+If the plugin loads but `/` and `@` autocomplete doesn't show Qodo commands:
+
+1. **Verify symlinks are created**:
+   ```bash
+   ls -la ~/.config/opencode/agents
+   ls -la ~/.config/opencode/commands
+   # Should show symlinks pointing to your repo
+   ```
+
+2. **Recreate symlinks**:
+   ```bash
+   rm ~/.config/opencode/agents ~/.config/opencode/commands
+   ln -sf /path/to/opencode-qodo/.opencode/agents ~/.config/opencode/agents
+   ln -sf /path/to/opencode-qodo/.opencode/commands ~/.config/opencode/commands
+   ```
+
+3. **Restart OpenCode completely** (not just reload)
+
+### Plugin works only from specific directory
+If the plugin works only when you launch OpenCode from the plugin directory:
+
+1. Make sure you're using the **absolute path** in `~/.config/opencode/opencode.json`:
+   ```json
+   {
+     "plugin": ["/absolute/path/to/opencode-qodo/dist/bundle.js"]
+   }
+   ```
+   Not a relative path like `./opencode-qodo/dist/bundle.js`
+
+2. Verify the bundle exists:
+   ```bash
+   ls -la /path/to/opencode-qodo/dist/bundle.js
+   # Should be ~470KB
+   ```
+
+3. Rebuild the bundle:
+   ```bash
+   cd opencode-qodo
+   npm run build
+   ```
 
 ### Enable debug mode
 ```bash
