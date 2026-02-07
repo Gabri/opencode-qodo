@@ -14,7 +14,7 @@ A comprehensive OpenCode plugin for [Qodo CLI](https://www.qodo.ai/) integration
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/dinova-one/opencode-qodo.git ~/opencode-qodo
+git clone https://github.com/opencode-qodo.git ~/opencode-qodo
 cd ~/opencode-qodo && npm install && npm run build
 
 # 2. Add to OpenCode config
@@ -70,6 +70,7 @@ This is the quickest way to use Qodo - just prefix your message and it will be p
 The Qodo plugin now provides full autocomplete support in OpenCode:
 
 ### Slash Commands (Type `/`)
+
 When you type `/` in OpenCode, you'll now see Qodo commands in the autocomplete list:
 
 - **`/qodo`** - Execute Qodo command for code generation, review, and more
@@ -80,6 +81,7 @@ When you type `/` in OpenCode, you'll now see Qodo commands in the autocomplete 
 - **`/qodo:status`** - Check Qodo CLI status and authentication
 
 ### Agent Selection (Type `@` or use Tab)
+
 Switch to Qodo as your active agent by typing `@` and selecting:
 
 - **`@qodo`** - Switch to Qodo Agent for AI-powered code assistance
@@ -151,6 +153,7 @@ Create a REST API endpoint for user management
 ## Prerequisites
 
 - **Qodo CLI**: Must be installed and authenticated
+
   ```bash
   npm install -g qodo
   qodo login
@@ -161,6 +164,7 @@ Create a REST API endpoint for user management
 ### Prerequisites
 
 - **Qodo CLI**: Must be installed and authenticated
+
   ```bash
   npm install -g qodo
   qodo login
@@ -171,36 +175,43 @@ Create a REST API endpoint for user management
 This method allows the plugin to work from any directory and provides full autocomplete support.
 
 1. **Clone** the repository:
+
    ```bash
-   git clone https://github.com/dinova-one/opencode-qodo.git
+   git clone https://github.com/opencode-qodo.git
    cd opencode-qodo
    ```
 
 2. **Install dependencies** and build:
+
    ```bash
    npm install
    npm run build
    ```
 
 3. **Add the plugin to OpenCode configuration** (`~/.config/opencode/opencode.json`):
+
    ```json
    {
      "plugin": [
-       "/home/gabri/ws/git/dinova-one/github/opecode-qodo/dist/bundle.js"
+       "/<absolute-path-to-repo>/opecode-qodo/dist/bundle.js"
      ]
    }
    ```
+
    Replace the path with the absolute path to your cloned repository.
 
 4. **Create symlinks for autocomplete support** (important!):
+
    ```bash
    # Create symlinks so OpenCode can find agents and commands
-   ln -sf /home/gabri/ws/git/dinova-one/github/opecode-qodo/.opencode/agents ~/.config/opencode/agents
-   ln -sf /home/gabri/ws/git/dinova-one/github/opecode-qodo/.opencode/commands ~/.config/opencode/commands
+   ln -sf /<absolute-path-to-repo>/opecode-qodo/.opencode/agents ~/.config/opencode/agents
+   ln -sf /<absolute-path-to-repo>/opecode-qodo/.opencode/commands ~/.config/opencode/commands
    ```
+
    Again, replace the source path with your actual repository path.
 
 5. **Verify installation**:
+
    ```bash
    opencode
    # Type / to see Qodo commands in autocomplete
@@ -212,13 +223,15 @@ This method allows the plugin to work from any directory and provides full autoc
 If you prefer to install the plugin only in a specific project:
 
 1. **Clone** inside your project:
+
    ```bash
    cd your-project
-   git clone https://github.com/dinova-one/opencode-qodo.git
+   git clone https://github.com/opencode-qodo.git
    cd opencode-qodo && npm install && npm run build && cd ..
    ```
 
 2. **Add to project's OpenCode config** (`.opencode/opencode.json`):
+
    ```json
    {
      "plugin": ["./opencode-qodo/dist/bundle.js"]
@@ -226,6 +239,7 @@ If you prefer to install the plugin only in a specific project:
    ```
 
 3. **Create local symlinks**:
+
    ```bash
    mkdir -p .opencode
    ln -sf ./opencode-qodo/.opencode/agents .opencode/agents
@@ -243,6 +257,7 @@ If you prefer to install the plugin only in a specific project:
 ### Verification
 
 After installation, verify the plugin is loaded:
+
 ```bash
 opencode --version
 # Should show Qodo plugin loaded in logs
@@ -285,12 +300,15 @@ Create `~/.config/opencode/qodo.json`:
 ### Core Tools
 
 #### `qodo` - Code Generation
+
 Generate code, tests, or documentation:
+
 ```
 Generate a React component for a user profile card using qodo
 ```
 
 **Parameters:**
+
 - `prompt` (required): Generation instruction
 - `model`: Specific model to use
 - `file`: Context file path
@@ -299,34 +317,43 @@ Generate a React component for a user profile card using qodo
 - `framework`: Framework context
 
 #### `qodo_chat` - Interactive Chat
+
 Start a chat session:
+
 ```
 Start a qodo_chat to brainstorm API design
 ```
 
 **Parameters:**
+
 - `initialMessage`: Starting message
 - `model`: Model to use
 - `context`: Background information
 
 #### `qodo_review` - Code Review
+
 Review git changes:
+
 ```
 Run qodo_review on staged changes with focus on security
 ```
 
 **Parameters:**
+
 - `scope`: "staged", "unstaged", or "all"
 - `focus`: Specific focus areas
 - `model`: Model to use
 
 #### `qodo_agent` - Execute Agents
+
 Run specialized Qodo agents:
+
 ```
 Use qodo_agent with agent "qodo-cover" to generate tests for src/utils.ts
 ```
 
 **Parameters:**
+
 - `agent` (required): Agent name
 - `prompt` (required): Task instruction
 - `model`: Model to use
@@ -334,12 +361,15 @@ Use qodo_agent with agent "qodo-cover" to generate tests for src/utils.ts
 - `keyValuePairs`: Additional parameters
 
 #### `qodo_chain` - Chain Agents
+
 Execute multiple agents sequentially:
+
 ```
 Chain agents ["analyze", "refactor", "test"] with initial prompt "Review this codebase"
 ```
 
 **Parameters:**
+
 - `agents` (required): Array of agent names
 - `initialPrompt` (required): Starting input
 - `model`: Model for all agents
@@ -347,28 +377,36 @@ Chain agents ["analyze", "refactor", "test"] with initial prompt "Review this co
 ### Management Tools
 
 #### `qodo_models` - List Models
+
 View all available models:
+
 ```
 Show me all qodo_models from anthropic
 ```
 
 **Parameters:**
+
 - `provider`: Filter by provider
 
 #### `qodo_status` - Check Status
+
 View authentication and configuration:
+
 ```
 Check qodo_status
 ```
 
 #### `qodo_config` - Manage Configuration
+
 View or update settings:
+
 ```
 Use qodo_config to view current settings
 Use qodo_config to set debug to true
 ```
 
 **Parameters:**
+
 - `action`: "view" or "set"
 - `key`: Configuration key (for set)
 - `value`: Value to set (for set)
@@ -389,26 +427,31 @@ Use qodo_config to set debug to true
 ## Usage Examples
 
 ### Generate Code
+
 ```
 Use qodo to create a Python FastAPI endpoint for user authentication with JWT
 ```
 
 ### Generate Tests
+
 ```
 Use qodo_agent with agent "qodo-cover" and prompt "Generate unit tests for src/calculator.ts"
 ```
 
 ### Review Code
+
 ```
 Run qodo_review on all changes with focus on performance
 ```
 
 ### Chat Session
+
 ```
 Start qodo_chat with context "We're building a microservices architecture" and initial message "How should we handle service discovery?"
 ```
 
 ### Chain Agents
+
 ```
 Use qodo_chain with agents ["analyze", "document"] and initial prompt "Review the API design in src/api/"
 ```
@@ -416,19 +459,23 @@ Use qodo_chain with agents ["analyze", "document"] and initial prompt "Review th
 ## Troubleshooting
 
 ### Qodo CLI not found
+
 ```bash
 npm install -g qodo
 qodo --version  # Verify installation
 ```
 
 ### Not authenticated
+
 ```bash
 qodo login
 qodo key list  # Verify authentication
 ```
 
 ### Plugin not loading / Zod version error
+
 If you see errors about Zod version conflicts:
+
 ```bash
 # Remove old dependencies and reinstall
 cd opencode-qodo
@@ -440,9 +487,11 @@ npm run build
 The plugin uses the Zod version bundled with `@opencode-ai/plugin` to ensure compatibility.
 
 ### Autocomplete not working (commands/agents not showing)
+
 If the plugin loads but `/` and `@` autocomplete doesn't show Qodo commands:
 
 1. **Verify symlinks are created**:
+
    ```bash
    ls -la ~/.config/opencode/agents
    ls -la ~/.config/opencode/commands
@@ -450,6 +499,7 @@ If the plugin loads but `/` and `@` autocomplete doesn't show Qodo commands:
    ```
 
 2. **Recreate symlinks**:
+
    ```bash
    rm ~/.config/opencode/agents ~/.config/opencode/commands
    ln -sf /path/to/opencode-qodo/.opencode/agents ~/.config/opencode/agents
@@ -459,40 +509,48 @@ If the plugin loads but `/` and `@` autocomplete doesn't show Qodo commands:
 3. **Restart OpenCode completely** (not just reload)
 
 ### Plugin works only from specific directory
+
 If the plugin works only when you launch OpenCode from the plugin directory:
 
 1. Make sure you're using the **absolute path** in `~/.config/opencode/opencode.json`:
+
    ```json
    {
      "plugin": ["/absolute/path/to/opencode-qodo/dist/bundle.js"]
    }
    ```
+
    Not a relative path like `./opencode-qodo/dist/bundle.js`
 
 2. Verify the bundle exists:
+
    ```bash
    ls -la /path/to/opencode-qodo/dist/bundle.js
    # Should be ~470KB
    ```
 
 3. Rebuild the bundle:
+
    ```bash
    cd opencode-qodo
    npm run build
    ```
 
 ### Enable debug mode
+
 ```bash
 # In OpenCode
 Use qodo_config to set debug to true
 ```
 
 Or set environment variable:
+
 ```bash
 DEBUG=1 opencode
 ```
 
 ### Check plugin is loaded
+
 ```bash
 # Start OpenCode and check logs
 opencode
